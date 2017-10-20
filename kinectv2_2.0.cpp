@@ -214,6 +214,8 @@ void doDot(cv::Mat &src_img, cv::Mat &result_img){
 	}
 }
 
+//string ty = type2str(result_img.type());
+//printf("Matrix: %s %dx%d \n", ty.c_str(), result_img.cols, result_img.rows);
 string type2str(int type) {
 	string r;
 
@@ -275,16 +277,13 @@ void createVideo(vector<cv::Mat> &frames){
 		cout << "Error!! Unable to open video file for output." << endl;
 		exit(-1);
 	}
-	for (int i = 0; i < 10; i++){
-	
-		for (auto itr = frames.begin(); itr != frames.end(); ++itr){
-			writer << *itr;
-		}
-
-		cv::Mat black = cv::Mat(height, width, CV_8UC3, cv::Scalar(0, 0, 0));
-		writer << black;
-		writer << black;
+	for (auto itr = frames.begin(); itr != frames.end(); ++itr){
+		writer << *itr;
 	}
+
+	cv::Mat black = cv::Mat(height, width, CV_8UC3, cv::Scalar(0, 0, 0));
+	writer << black;
+	writer << black;
 }
 
 void doLightArtLike(vector<cv::Mat> frames, vector<cv::Mat> &result_frames){
@@ -306,14 +305,14 @@ void doLightArtLike(vector<cv::Mat> frames, vector<cv::Mat> &result_frames){
 	}
 }
 
-void doJob(){
+void doJobOld(){
 	vector<People> videos;
 	vector<cv::Mat> frames, result_frames;
 	int count = 1;
 
 	//Capture recorded vids
 	while (true){
-		cv::VideoCapture cap("ppls/ppl_"+to_string(count)+".avi");
+		cv::VideoCapture cap("ppls/ppl_" + to_string(count) + ".avi");
 		if (!cap.isOpened()) {
 			cout << "Unable to open the camera\n";
 			break;
@@ -322,7 +321,7 @@ void doJob(){
 		videos.push_back(people);
 		count++;
 	}
-	
+
 
 	int n = getMaxPeopleLength(videos);
 	cv::Mat temp;
@@ -335,8 +334,6 @@ void doJob(){
 		for (int l = 0; l < videos.size(); l++){
 			cv::Mat image;
 			if (videos.at(l).getPics(image, i) < 0) continue;
-			//string ty = type2str(image.type());
-			//printf("Matrix: %s %dx%d \n", ty.c_str(), image.cols, image.rows);
 			cv::bitwise_or(image, result_image, result_image);
 		}
 		frames.push_back(result_image);
@@ -348,6 +345,97 @@ void doJob(){
 	createVideo(result_frames);
 }
 
+//get random number between min and max
+int getRandom(int min, int max)
+{
+	return min + (int)(rand()*(max - min + 1.0) / (1.0 + RAND_MAX));
+}
+
+int getRandomNumfromVids(vector<People> &videos){
+	int random_num = getRandom(0, videos.size() - 1);
+	if ((videos.at(random_num)).getUsed())  return getRandomNumfromVids(videos);
+	(videos.at(random_num)).setUsed();
+	return random_num;
+}
+
+int getProcessingVids(vector<int> dummy){
+	for (auto itr = dummy.begin(); itr != dummy.end(); ++itr){
+		if (*itr >= 0) return 1;
+	}
+	return 0;
+}
+
+int allVideosUsed(vector<People> videos){
+	for (auto itr = videos.begin(); itr != videos.end(); ++itr){
+		if (!(*itr).getUsed()) return false;
+	}
+	return true;
+}
+
+void doJob(){
+	vector<People> videos;
+	vector<cv::Mat> frames, result_frames;
+	int count = 1;
+
+	//Capture recorded vids
+	while (true){
+		cv::VideoCapture cap("ppls/ppl_" + to_string(count) + ".avi");
+		if (!cap.isOpened()) {
+			cout << "Unable to open the camera\n";
+			break;
+		}
+		People people(cap);
+		videos.push_back(people);
+		count++;
+	}
+
+	int video_flag = 0;
+	vector<int> dummy;
+	int height = (*videos.begin()).getHeight();
+	int width = (*videos.begin()).getWidth();
+	while (video_flag >= 0){
+		cv::Mat result_image = cv::Mat(height, width, CV_8UC1, cv::Scalar(0, 0, 0));
+		if (video_flag == 0 || video_flag % 20 == 0){
+			int i = getRandomNumfromVids(videos);
+			dummy.push_back(i);
+		}
+		if (getProcessingVids(dummy)){
+			for (auto itr = dummy.begin(); itr != dummy.end(); ++itr){
+				if (*itr < 0) continue;
+				cv::Mat image;
+				videos.at(*itr).getPics(image);
+				cv::bitwise_or(image, result_image, result_image);
+				if ((videos.at(*itr)).getPicsLength() == 0) *itr = -1;
+			}
+		}
+		if (allVideosUsed(videos)){
+			break;
+		}
+		frames.push_back(result_image);
+		video_flag++;
+	}
+
+	/*	int n = getMaxPeopleLength(videos);
+		cv::Mat temp;
+		videos.at(0).getPics(temp, 0);
+		int height = temp.rows;
+		int width = temp.cols;
+		//check each frame and use or-operation
+		for (int i = 0; i < n; i++){
+		cv::Mat result_image = cv::Mat(height, width, CV_8UC1, cv::Scalar(0, 0, 0));
+		for (int l = 0; l < videos.size(); l++){
+		cv::Mat image;
+		if (videos.at(l).getPics(image, i) < 0) continue;
+		cv::bitwise_or(image, result_image, result_image);
+		}
+		frames.push_back(result_image);
+		}*/
+
+	//add afterimage and make it light-art-like
+	doLightArtLike(frames, result_frames);
+
+	createVideo(result_frames);
+}
 
 void main() {
 	try {

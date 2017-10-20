@@ -5,13 +5,15 @@
 #include <sstream>
 #include <Windows.h>
 #include <time.h>
+#include <list>
 
 using namespace std;
 
 class People{
 private:
-	vector<cv::Mat> pics;
+	list<cv::Mat> pics;
 	cv::Mat temp_image;
+	bool used = false;
 
 public:
 
@@ -22,10 +24,10 @@ public:
 				std::cout << "Can't read frames from your camera\n";
 				break;
 			}
+			
 			cv::cvtColor(temp_image, temp_image, cv::COLOR_BGR2GRAY);
 			pics.push_back(temp_image);
 		}
-		int i = 0;
 	}
 	~People(){}
 
@@ -35,8 +37,31 @@ public:
 
 	int getPics(cv::Mat &image, int i){
 		if (getPicsLength() <= i) return -1;
-		image = pics.at(i);
+		//image = pics.at(i);
 
 		return 1;
+	}
+
+	int getPics(cv::Mat &image){
+		if (pics.empty()) return -1;
+		image = *pics.begin();
+		pics.pop_front();
+		return 1;
+	}
+
+	void setUsed(){
+		used = true;
+	}
+
+	bool getUsed(){
+		return used;
+	}
+
+	int getHeight(){
+		return (*pics.begin()).rows;
+	}	
+	
+	int getWidth(){
+		return (*pics.begin()).cols;
 	}
 };
