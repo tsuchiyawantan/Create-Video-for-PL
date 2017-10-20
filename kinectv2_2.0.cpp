@@ -11,6 +11,7 @@
 #include "Node.h"
 #include "Graph.h"
 #include "People.h"
+#include <time.h>
 
 #define HUE 80
 #define SPACESIZE 10
@@ -305,54 +306,8 @@ void doLightArtLike(vector<cv::Mat> frames, vector<cv::Mat> &result_frames){
 	}
 }
 
-void doJobOld(){
-	vector<People> videos;
-	vector<cv::Mat> frames, result_frames;
-	int count = 1;
-
-	//Capture recorded vids
-	while (true){
-		cv::VideoCapture cap("ppls/ppl_" + to_string(count) + ".avi");
-		if (!cap.isOpened()) {
-			cout << "Unable to open the camera\n";
-			break;
-		}
-		People people(cap);
-		videos.push_back(people);
-		count++;
-	}
-
-
-	int n = getMaxPeopleLength(videos);
-	cv::Mat temp;
-	videos.at(0).getPics(temp, 0);
-	int height = temp.rows;
-	int width = temp.cols;
-	//check each frame and use or-operation
-	for (int i = 0; i < n; i++){
-		cv::Mat result_image = cv::Mat(height, width, CV_8UC1, cv::Scalar(0, 0, 0));
-		for (int l = 0; l < videos.size(); l++){
-			cv::Mat image;
-			if (videos.at(l).getPics(image, i) < 0) continue;
-			cv::bitwise_or(image, result_image, result_image);
-		}
-		frames.push_back(result_image);
-	}
-
-	//add afterimage and make it light-art-like
-	doLightArtLike(frames, result_frames);
-
-	createVideo(result_frames);
-}
-
-//get random number between min and max
-int getRandom(int min, int max)
-{
-	return min + (int)(rand()*(max - min + 1.0) / (1.0 + RAND_MAX));
-}
-
 int getRandomNumfromVids(vector<People> &videos){
-	int random_num = getRandom(0, videos.size() - 1);
+	int random_num = rand() % videos.size();
 	if ((videos.at(random_num)).getUsed())  return getRandomNumfromVids(videos);
 	(videos.at(random_num)).setUsed();
 	return random_num;
@@ -376,6 +331,7 @@ void doJob(){
 	vector<People> videos;
 	vector<cv::Mat> frames, result_frames;
 	int count = 1;
+	srand(time(NULL));
 
 	//Capture recorded vids
 	while (true){
@@ -414,22 +370,6 @@ void doJob(){
 		frames.push_back(result_image);
 		video_flag++;
 	}
-
-	/*	int n = getMaxPeopleLength(videos);
-		cv::Mat temp;
-		videos.at(0).getPics(temp, 0);
-		int height = temp.rows;
-		int width = temp.cols;
-		//check each frame and use or-operation
-		for (int i = 0; i < n; i++){
-		cv::Mat result_image = cv::Mat(height, width, CV_8UC1, cv::Scalar(0, 0, 0));
-		for (int l = 0; l < videos.size(); l++){
-		cv::Mat image;
-		if (videos.at(l).getPics(image, i) < 0) continue;
-		cv::bitwise_or(image, result_image, result_image);
-		}
-		frames.push_back(result_image);
-		}*/
 
 	//add afterimage and make it light-art-like
 	doLightArtLike(frames, result_frames);
