@@ -17,15 +17,29 @@ private:
 
 public:
 
+	void changeDesign(cv::Mat &src_image, int i){
+		/*
+		case 0 : Normal
+		case 1 : Opposite
+		*/
+		switch (i){
+		case 0 : 
+			break;
+		case 1 : cv::flip(src_image, src_image, 1);
+			break;
+		}
+	}
+
 	People(cv::VideoCapture &cap){
+		int i = rand() % 2;
 		while (true) {
 			cap >> temp_image;
 			if (temp_image.empty()) {
 				std::cout << "Can't read frames from your camera\n";
 				break;
 			}
-			
 			cv::cvtColor(temp_image, temp_image, cv::COLOR_BGR2GRAY);
+			changeDesign(temp_image, i);
 			pics.push_back(temp_image);
 		}
 	}
