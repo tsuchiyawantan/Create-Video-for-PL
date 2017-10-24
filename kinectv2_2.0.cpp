@@ -273,7 +273,7 @@ int getMaxPeopleLength(vector<People> videos){
 void createVideo(vector<cv::Mat> &frames){
 	int width = (*frames.begin()).cols;
 	int height = (*frames.begin()).rows;
-	cv::VideoWriter writer("ppls/ppl_result.avi", cv::VideoWriter::fourcc('I', '4', '2', '0'), 50, cv::Size(width, height), true);
+	cv::VideoWriter writer("ppls/ppl_result.avi", cv::VideoWriter::fourcc('I', '4', '2', '0'), 3, cv::Size(width, height), true);
 	if (!writer.isOpened()){
 		cout << "Error!! Unable to open video file for output." << endl;
 		exit(-1);
@@ -322,6 +322,13 @@ int getProcessingVids(vector<int> dummy){
 
 int allVideosUsed(vector<People> videos){
 	for (auto itr = videos.begin(); itr != videos.end(); ++itr){
+		if ((*itr).getPicsLength() != 0) return false;
+	}
+	return true;
+}
+
+int allVideosChecked(vector<People> videos){
+	for (auto itr = videos.begin(); itr != videos.end(); ++itr){
 		if (!(*itr).getUsed()) return false;
 	}
 	return true;
@@ -347,11 +354,12 @@ void doJob(){
 
 	int video_flag = 0;
 	vector<int> dummy;
+	vector<int> video_dummy;
 	int height = (*videos.begin()).getHeight();
 	int width = (*videos.begin()).getWidth();
 	while (video_flag >= 0){
 		cv::Mat result_image = cv::Mat(height, width, CV_8UC1, cv::Scalar(0, 0, 0));
-		if (video_flag == 0 || video_flag % 20 == 0){
+		if ((video_flag == 0 || video_flag % 40 == 0) && !allVideosChecked(videos)){
 			int i = getRandomNumfromVids(videos);
 			dummy.push_back(i);
 		}
@@ -361,7 +369,9 @@ void doJob(){
 				cv::Mat image;
 				videos.at(*itr).getPics(image);
 				cv::bitwise_or(image, result_image, result_image);
-				if ((videos.at(*itr)).getPicsLength() == 0) *itr = -1;
+				if ((videos.at(*itr)).getPicsLength() == 0) {
+					*itr = -1;
+				}
 			}
 		}
 		if (allVideosUsed(videos)){

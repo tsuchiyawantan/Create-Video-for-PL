@@ -46,6 +46,7 @@ public:
 	~People(){}
 
 	int getPicsLength(){
+		if (pics.empty()) return 0;
 		return pics.size();
 	}
 
