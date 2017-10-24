@@ -12,11 +12,12 @@ using namespace std;
 class People{
 private:
 	list<cv::Mat> pics;
-	cv::Mat temp_image;
+	cv::Mat temp_image, interpolate_image;
 	bool used = false;
+	int fps = -1;
+	int frame_count = 0;
 
 public:
-
 	void changeDesign(cv::Mat &src_image, int i){
 		/*
 		case 0 : Normal
@@ -42,6 +43,8 @@ public:
 			changeDesign(temp_image, i);
 			pics.push_back(temp_image);
 		}
+		interpolate_image = cv::Mat(cap.get(CV_CAP_PROP_FRAME_HEIGHT), cap.get(CV_CAP_PROP_FRAME_WIDTH), CV_8UC1, cv::Scalar(0, 0, 0));
+		setFps(cap.get(CV_CAP_PROP_FPS));
 	}
 	~People(){}
 
@@ -50,17 +53,22 @@ public:
 		return pics.size();
 	}
 
-	int getPics(cv::Mat &image, int i){
-		if (getPicsLength() <= i) return -1;
-		//image = pics.at(i);
-
-		return 1;
-	}
-
-	int getPics(cv::Mat &image){
+	int getPics(cv::Mat &image, int video_frame, int fps){
 		if (pics.empty()) return -1;
-		image = *pics.begin();
-		pics.pop_front();
+		if (getFps() < fps){
+			if(video_frame % getFps() == 0){
+				image = *pics.begin();
+				interpolate_image = image;
+				pics.pop_front();
+			}
+			else {
+				image = interpolate_image;
+			}
+		}
+		else{
+			image = *pics.begin();
+			pics.pop_front();
+		}
 		return 1;
 	}
 
@@ -78,5 +86,13 @@ public:
 	
 	int getWidth(){
 		return (*pics.begin()).cols;
+	}
+
+	void setFps(int i){
+		fps = i;
+	}
+
+	int getFps(){
+		return fps;
 	}
 };

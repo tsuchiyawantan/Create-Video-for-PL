@@ -270,10 +270,10 @@ int getMaxPeopleLength(vector<People> videos){
 	return max;
 }
 
-void createVideo(vector<cv::Mat> &frames){
+void createVideo(vector<cv::Mat> &frames, int fps){
 	int width = (*frames.begin()).cols;
 	int height = (*frames.begin()).rows;
-	cv::VideoWriter writer("ppls/ppl_result.avi", cv::VideoWriter::fourcc('I', '4', '2', '0'), 3, cv::Size(width, height), true);
+	cv::VideoWriter writer("ppls/ppl_result.avi", cv::VideoWriter::fourcc('I', '4', '2', '0'), fps, cv::Size(width, height), true);
 	if (!writer.isOpened()){
 		cout << "Error!! Unable to open video file for output." << endl;
 		exit(-1);
@@ -334,6 +334,10 @@ int allVideosChecked(vector<People> videos){
 	return true;
 }
 
+void choosePics(cv::Mat &image, People video, int fps, int video_flag){
+
+}
+
 void doJob(){
 	vector<People> videos;
 	vector<cv::Mat> frames, result_frames;
@@ -355,6 +359,7 @@ void doJob(){
 	int video_flag = 0;
 	vector<int> dummy;
 	vector<int> video_dummy;
+	int fps = 30;
 	int height = (*videos.begin()).getHeight();
 	int width = (*videos.begin()).getWidth();
 	while (video_flag >= 0){
@@ -367,7 +372,7 @@ void doJob(){
 			for (auto itr = dummy.begin(); itr != dummy.end(); ++itr){
 				if (*itr < 0) continue;
 				cv::Mat image;
-				videos.at(*itr).getPics(image);
+				videos.at(*itr).getPics(image, video_flag, fps);
 				cv::bitwise_or(image, result_image, result_image);
 				if ((videos.at(*itr)).getPicsLength() == 0) {
 					*itr = -1;
@@ -384,7 +389,7 @@ void doJob(){
 	//add afterimage and make it light-art-like
 	doLightArtLike(frames, result_frames);
 
-	createVideo(result_frames);
+	createVideo(result_frames, fps);
 }
 
 void main() {
