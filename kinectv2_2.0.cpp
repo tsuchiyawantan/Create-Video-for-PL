@@ -364,7 +364,7 @@ void doJob(){
 	int width = (*videos.begin()).getWidth();
 	while (video_flag >= 0){
 		cv::Mat result_image = cv::Mat(height, width, CV_8UC1, cv::Scalar(0, 0, 0));
-		if ((video_flag == 0 || video_flag % 40 == 0) && !allVideosChecked(videos)){
+		if ((video_flag == 0 || video_flag % 25 == 0) && !allVideosChecked(videos)){
 			int i = getRandomNumfromVids(videos);
 			dummy.push_back(i);
 		}
